@@ -4,7 +4,7 @@ Laser theme options module.
 Provides structured access to laser-specific theme options.
 """
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 
 @dataclass
