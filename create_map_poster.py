@@ -13,7 +13,6 @@ from map_data import MapData, get_map_data
 from svg_renderer import create_laser_svg, PhysicalSize, SUPPORTED_SIZES
 from xcs_generator import create_xcs_file
 from laser_config import load_laser_profile, get_available_profiles, LaserProfileError
-from laser_theme import get_laser_options
 
 THEMES_DIR = "themes"
 FONTS_DIR = "fonts"
@@ -239,7 +238,7 @@ def get_coordinates(city, country):
     else:
         raise ValueError(f"Could not find coordinates for {city}, {country}")
 
-def create_poster(city, country, point, dist, output_file, map_data=None):
+def create_poster(city, country, point, dist, output_file, map_data: MapData = None):
     """
     Generate a map poster.
 
