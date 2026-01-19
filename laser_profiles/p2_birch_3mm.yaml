@@ -1,0 +1,40 @@
+# XTool P2 Laser Profile for 3mm Birch Plywood
+# Birch is harder than basswood - needs higher power
+
+machine: P2
+material:
+  name: "3mm Birch Plywood"
+  thickness: 3
+
+operations:
+  score:
+    roads_motorway:
+      power: 30
+      speed: 90
+    roads_primary:
+      power: 27
+      speed: 110
+    roads_secondary:
+      power: 23
+      speed: 130
+    roads_tertiary:
+      power: 20
+      speed: 150
+    roads_residential:
+      power: 17
+      speed: 170
+
+  engrave_fill:
+    water:
+      power: 50
+      speed: 180
+      density: 100
+    parks:
+      power: 40
+      speed: 180
+      density: 80
+
+  engrave_solid:
+    text:
+      power: 60
+      speed: 140

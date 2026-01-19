@@ -1,0 +1,45 @@
+# XTool P2 Laser Profile for 3mm Basswood Plywood
+# Power values: 1-100 (percentage)
+# Speed values: 1-400 (mm/s)
+# Density values: 1-100 (lines per mm for raster operations)
+
+machine: P2
+material:
+  name: "3mm Basswood Plywood"
+  thickness: 3
+
+operations:
+  # Score mode - vector engraving for road lines
+  score:
+    roads_motorway:
+      power: 25
+      speed: 100
+    roads_primary:
+      power: 22
+      speed: 120
+    roads_secondary:
+      power: 18
+      speed: 140
+    roads_tertiary:
+      power: 15
+      speed: 160
+    roads_residential:
+      power: 12
+      speed: 180
+
+  # Fill mode - raster engraving for areas
+  engrave_fill:
+    water:
+      power: 40
+      speed: 200
+      density: 100
+    parks:
+      power: 30
+      speed: 200
+      density: 80
+
+  # Solid engrave - for text elements
+  engrave_solid:
+    text:
+      power: 50
+      speed: 150

@@ -20,10 +20,12 @@ pyparsing==3.3.1
 pyproj==3.7.2
 python-dateutil==2.9.0.post0
 pytz==2025.2
+PyYAML==6.0.2
 requests==2.32.5
 scipy==1.16.3
 shapely==2.1.2
 six==1.17.0
+svgwrite==1.4.3
 tqdm==4.67.1
 tzdata==2025.3
 urllib3==2.6.3

@@ -1,0 +1,32 @@
+{
+  "name": "Laser Mono",
+  "description": "Monochrome theme optimized for laser engraving with XCS-compatible color coding",
+  "bg": "#FFFFFF",
+  "text": "#000000",
+  "gradient_color": "#FFFFFF",
+  "water": "#FFFF00",
+  "parks": "#FFFFAA",
+  "road_motorway": "#FF0000",
+  "road_primary": "#CC0000",
+  "road_secondary": "#990000",
+  "road_tertiary": "#660000",
+  "road_residential": "#330000",
+  "road_default": "#660000",
+  "laser": {
+    "include_roads": true,
+    "include_water": true,
+    "include_parks": true,
+    "include_text": true,
+    "include_border": false,
+    "road_colors": {
+      "motorway": "#FF0000",
+      "primary": "#EE0000",
+      "secondary": "#DD0000",
+      "tertiary": "#CC0000",
+      "residential": "#BB0000"
+    },
+    "water_color": "#FFFF00",
+    "parks_color": "#FFFFAA",
+    "text_color": "#000000"
+  }
+}
