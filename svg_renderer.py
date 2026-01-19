@@ -5,8 +5,7 @@ Generates structured SVG files with color-coded layers for XTool laser cutters.
 """
 import svgwrite
 from dataclasses import dataclass
-from typing import Tuple, List, Optional, Dict, Any
-import numpy as np
+from typing import Tuple, List, Dict, Any
 
 from map_data import MapData
 from laser_theme import LaserThemeOptions, get_laser_options, get_road_color
@@ -55,6 +54,9 @@ class PhysicalSize:
             height = float(parts[1])
         except ValueError:
             raise ValueError(f"Invalid size values: {size_str}. Must be numbers.")
+
+        if width <= 0 or height <= 0:
+            raise ValueError(f"Size values must be positive: {size_str}")
 
         return cls(width=width, height=height)
 
