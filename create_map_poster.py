@@ -4,13 +4,12 @@ from matplotlib.font_manager import FontProperties
 import matplotlib.colors as mcolors
 import numpy as np
 from geopy.geocoders import Nominatim
-from tqdm import tqdm
 import time
 import json
 import os
 from datetime import datetime
 import argparse
-from map_data import MapData, get_map_data
+from map_data import get_map_data
 
 THEMES_DIR = "themes"
 FONTS_DIR = "fonts"
@@ -270,13 +269,11 @@ def create_poster(city, country, point, dist, output_file, map_data=None):
     # 4. Typography using Roboto font
     if FONTS:
         font_main = FontProperties(fname=FONTS['bold'], size=60)
-        font_top = FontProperties(fname=FONTS['bold'], size=40)
         font_sub = FontProperties(fname=FONTS['light'], size=22)
         font_coords = FontProperties(fname=FONTS['regular'], size=14)
     else:
         # Fallback to system fonts
         font_main = FontProperties(family='monospace', weight='bold', size=60)
-        font_top = FontProperties(family='monospace', weight='bold', size=40)
         font_sub = FontProperties(family='monospace', weight='normal', size=22)
         font_coords = FontProperties(family='monospace', size=14)
 
@@ -388,7 +385,7 @@ def list_themes():
                 theme_data = json.load(f)
                 display_name = theme_data.get('name', theme_name)
                 description = theme_data.get('description', '')
-        except:
+        except Exception:
             display_name = theme_name
             description = ''
         print(f"  {theme_name}")
