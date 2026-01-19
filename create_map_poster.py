@@ -9,7 +9,11 @@ import json
 import os
 from datetime import datetime
 import argparse
-from map_data import get_map_data
+from map_data import MapData, get_map_data
+from svg_renderer import create_laser_svg, PhysicalSize, SUPPORTED_SIZES
+from xcs_generator import create_xcs_file
+from laser_config import load_laser_profile, get_available_profiles, LaserProfileError
+from laser_theme import get_laser_options
 
 THEMES_DIR = "themes"
 FONTS_DIR = "fonts"
@@ -42,10 +46,32 @@ def generate_output_filename(city, theme_name):
     """
     if not os.path.exists(POSTERS_DIR):
         os.makedirs(POSTERS_DIR)
-    
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     city_slug = city.lower().replace(' ', '_')
     filename = f"{city_slug}_{theme_name}_{timestamp}.png"
+    return os.path.join(POSTERS_DIR, filename)
+
+def generate_laser_filename(city, theme_name, size_str, extension):
+    """
+    Generate output filename for laser files.
+
+    Args:
+        city: City name
+        theme_name: Theme name
+        size_str: Size string like '12x18'
+        extension: File extension ('svg' or 'xcs')
+
+    Returns:
+        Full path to output file
+    """
+    if not os.path.exists(POSTERS_DIR):
+        os.makedirs(POSTERS_DIR)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    city_slug = city.lower().replace(' ', '_')
+    size_slug = size_str.replace('x', '_')
+    filename = f"{city_slug}_{theme_name}_{size_slug}_{timestamp}.{extension}"
     return os.path.join(POSTERS_DIR, filename)
 
 def get_available_themes():
@@ -313,6 +339,62 @@ def create_poster(city, country, point, dist, output_file, map_data=None):
     plt.close()
     print(f"✓ Done! Poster saved as {output_file}")
 
+def create_laser_output(city, country, point, dist, theme_name, size_str,
+                        profile_name, formats):
+    """
+    Generate laser cutter output files.
+
+    Args:
+        city: City name
+        country: Country name
+        point: (latitude, longitude) tuple
+        dist: Map radius in meters
+        theme_name: Theme name to use
+        size_str: Physical size like '12x18'
+        profile_name: Laser profile name
+        formats: List of formats to generate ('svg', 'xcs')
+
+    Returns:
+        List of generated file paths
+    """
+    # Load theme
+    theme = load_theme(theme_name)
+
+    # Load laser profile
+    try:
+        profile = load_laser_profile(profile_name)
+    except LaserProfileError as e:
+        print(f"Error: {e}")
+        return []
+
+    # Parse size
+    try:
+        size = PhysicalSize.from_string(size_str)
+    except ValueError as e:
+        print(f"Error: {e}")
+        print(f"Supported sizes: {', '.join(SUPPORTED_SIZES)}")
+        return []
+
+    # Fetch map data
+    map_data = get_map_data(city, country, point, dist)
+    map_data.theme = theme
+
+    generated_files = []
+
+    # Generate SVG
+    if 'svg' in formats:
+        svg_path = generate_laser_filename(city, theme_name, size_str, 'svg')
+        create_laser_svg(map_data, svg_path, size, theme)
+        generated_files.append(svg_path)
+
+    # Generate XCS
+    if 'xcs' in formats:
+        xcs_path = generate_laser_filename(city, theme_name, size_str, 'xcs')
+        create_xcs_file(map_data, xcs_path, size, theme, profile)
+        generated_files.append(xcs_path)
+
+    return generated_files
+
 def print_examples():
     """Print usage examples."""
     print("""
@@ -375,7 +457,7 @@ def list_themes():
     if not available_themes:
         print("No themes found in 'themes/' directory.")
         return
-    
+
     print("\nAvailable Themes:")
     print("-" * 60)
     for theme_name in available_themes:
@@ -393,6 +475,27 @@ def list_themes():
         if description:
             print(f"    {description}")
         print()
+
+def list_profiles():
+    """List all available laser profiles with descriptions."""
+    available_profiles = get_available_profiles()
+    if not available_profiles:
+        print("No laser profiles found in 'laser_profiles/' directory.")
+        return
+
+    print("\nAvailable Laser Profiles:")
+    print("-" * 60)
+    for profile_name in available_profiles:
+        try:
+            profile = load_laser_profile(profile_name)
+            print(f"  {profile_name}")
+            print(f"    Machine: {profile.machine}")
+            print(f"    Material: {profile.material_name} ({profile.material_thickness}mm)")
+            print()
+        except LaserProfileError as e:
+            print(f"  {profile_name}")
+            print(f"    Error loading: {e}")
+            print()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -412,6 +515,15 @@ Examples:
     parser.add_argument('--theme', '-t', type=str, default='feature_based', help='Theme name (default: feature_based)')
     parser.add_argument('--distance', '-d', type=int, default=29000, help='Map radius in meters (default: 29000)')
     parser.add_argument('--list-themes', action='store_true', help='List all available themes')
+    parser.add_argument('--format', '-f', type=str, default='png',
+                        choices=['png', 'laser', 'svg', 'xcs', 'all'],
+                        help='Output format: png (default), laser (svg+xcs), svg, xcs, or all')
+    parser.add_argument('--size', '-s', type=str, default='12x18',
+                        help=f'Physical size for laser output (default: 12x18). Supported: {", ".join(SUPPORTED_SIZES)}')
+    parser.add_argument('--laser-profile', '-lp', type=str, default='p2_basswood_3mm',
+                        help='Laser profile for power/speed settings (default: p2_basswood_3mm)')
+    parser.add_argument('--list-profiles', action='store_true',
+                        help='List all available laser profiles')
     
     args = parser.parse_args()
     
@@ -424,7 +536,12 @@ Examples:
     if args.list_themes:
         list_themes()
         os.sys.exit(0)
-    
+
+    # List profiles if requested
+    if args.list_profiles:
+        list_profiles()
+        os.sys.exit(0)
+
     # Validate required arguments
     if not args.city or not args.country:
         print("Error: --city and --country are required.\n")
@@ -441,20 +558,51 @@ Examples:
     print("=" * 50)
     print("City Map Poster Generator")
     print("=" * 50)
-    
+
     # Load theme
     THEME = load_theme(args.theme)
-    
-    # Get coordinates and generate poster
+
+    # Get coordinates
     try:
         coords = get_coordinates(args.city, args.country)
-        output_file = generate_output_filename(args.city, args.theme)
-        create_poster(args.city, args.country, coords, args.distance, output_file)
-        
+    except Exception as e:
+        print(f"\n✗ Error getting coordinates: {e}")
+        os.sys.exit(1)
+
+    # Determine which formats to generate
+    if args.format == 'png':
+        formats = ['png']
+    elif args.format == 'laser':
+        formats = ['svg', 'xcs']
+    elif args.format == 'all':
+        formats = ['png', 'svg', 'xcs']
+    else:
+        formats = [args.format]
+
+    try:
+        generated_files = []
+
+        # Generate PNG if requested
+        if 'png' in formats:
+            output_file = generate_output_filename(args.city, args.theme)
+            create_poster(args.city, args.country, coords, args.distance, output_file)
+            generated_files.append(output_file)
+
+        # Generate laser formats if requested
+        laser_formats = [f for f in formats if f in ['svg', 'xcs']]
+        if laser_formats:
+            laser_files = create_laser_output(
+                args.city, args.country, coords, args.distance,
+                args.theme, args.size, args.laser_profile, laser_formats
+            )
+            generated_files.extend(laser_files)
+
         print("\n" + "=" * 50)
-        print("✓ Poster generation complete!")
+        print("✓ Generation complete!")
         print("=" * 50)
-        
+        for f in generated_files:
+            print(f"  {f}")
+
     except Exception as e:
         print(f"\n✗ Error: {e}")
         import traceback
