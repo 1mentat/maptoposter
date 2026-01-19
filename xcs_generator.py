@@ -12,10 +12,9 @@ from datetime import datetime
 
 from map_data import MapData
 from laser_config import LaserProfile
-from laser_theme import LaserThemeOptions, get_laser_options, get_road_color
+from laser_theme import get_laser_options
 from svg_renderer import (
-    get_graph_bounds, transform_coords, geometry_to_path_d,
-    extract_road_paths, extract_polygon_paths, PhysicalSize, SVGBounds
+    get_graph_bounds, extract_road_paths, extract_polygon_paths, PhysicalSize
 )
 
 
