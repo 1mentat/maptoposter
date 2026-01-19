@@ -5,7 +5,7 @@ Loads and validates YAML-based laser profiles for XTool laser cutters.
 """
 import os
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 import yaml
 
 
@@ -48,7 +48,7 @@ class LaserProfile:
     engrave_solid_text: LaserOperation
 
 
-def get_available_profiles() -> list:
+def get_available_profiles() -> list[str]:
     """
     Get list of available laser profile names.
 
